@@ -8,6 +8,8 @@ Use this index to choose a starting template for common systems and software eng
 | --- | --- | --- |
 | Architecture Decision Record (ADR) | Capture a single significant technical decision and its consequences. | `docs/templates/governance/adr-template.md` |
 | System Architecture Document | Describe context, components, interfaces, constraints, and deployment. | `docs/templates/architecture/system-architecture-template.md` |
+| High-Level Design (HLD) | Summarize the proposed solution, major building blocks, and architectural tradeoffs. | `docs/templates/architecture/high-level-design-template.md` |
+| Low-Level Design (DLD) | Capture component-level implementation details, flows, and interface behavior. | `docs/templates/architecture/low-level-design-template.md` |
 | Interface Control Document | Define contracts between systems, services, or teams. | `docs/templates/architecture/interface-control-template.md` |
 
 ## Requirements

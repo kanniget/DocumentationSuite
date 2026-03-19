@@ -7,7 +7,7 @@ A starter repository for systems and software engineering documentation written 
 This repository provides a practical baseline for documenting:
 
 - product and system requirements
-- software architecture and design decisions
+- software architecture, high-level design, low-level design, and decision records
 - delivery plans and release readiness
 - operational procedures and incident response
 - quality strategy and test planning
@@ -43,7 +43,7 @@ The structure is intentionally lightweight so teams can adopt it quickly and tai
 ## Suggested Usage Model
 
 - Use `requirements` templates early in discovery and planning.
-- Use `architecture` templates during solution design and technical review.
+- Use `architecture` templates during solution design and technical review, from system context through HLD and DLD detail.
 - Use `quality` templates before implementation and test execution.
 - Use `operations` templates before production rollout and during support.
 - Use `governance` templates for durable decision history.

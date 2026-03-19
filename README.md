@@ -70,6 +70,29 @@ Consider extending this suite with:
 - a published documentation site using MkDocs, Docusaurus, or similar tooling
 - more end-to-end example implementations for additional domains
 
+## Bootstrapping a Central Documentation Library
+
+Use `scripts/bootstrap-central-doc-library.sh` to create a GitLab-hosted central documentation catalog that receives publish notifications from project documentation repositories.
+
+```bash
+export GIT_REMOTE_BASE="git@gitlab.example.com:platform"
+./scripts/bootstrap-central-doc-library.sh /path/to/workspace central-doc-library
+```
+
+The script will:
+
+- create `/path/to/workspace/central-doc-library/` if it does not already exist
+- initialize a Git repository on the `main` branch
+- configure the `origin` remote using `GIT_REMOTE_BASE` and the repo name, unless the repo parameter is already a full Git URL
+- scaffold a small MkDocs site for the central catalog
+- seed a `data/doc-sources.csv` registry and a renderer script that turns it into a browsable catalog page
+- generate a `.gitlab-ci.yml` that can ingest `DOC_SOURCE_*` trigger variables, optionally commit catalog updates back to the default branch, and publish the site with GitLab Pages
+
+Optional environment variables:
+
+- `DOC_LIBRARY_SITE_NAME` to override the generated site name
+- `DOC_LIBRARY_SITE_URL` to set the published site URL in `mkdocs.yml`
+
 ## Bootstrapping a GitLab Documentation Instance
 
 Use `scripts/bootstrap-gitlab-instance.sh` to create a new MkDocs-based documentation repository from this suite.

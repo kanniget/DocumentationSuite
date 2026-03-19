@@ -69,3 +69,27 @@ Consider extending this suite with:
 - markdown linting and formatting checks
 - a published documentation site using MkDocs, Docusaurus, or similar tooling
 - more end-to-end example implementations for additional domains
+
+## Bootstrapping a GitLab Documentation Instance
+
+Use `scripts/bootstrap-gitlab-instance.sh` to create a new MkDocs-based documentation repository from this suite.
+
+```bash
+export GIT_REMOTE_BASE="git@gitlab.example.com:platform"
+./scripts/bootstrap-gitlab-instance.sh /path/to/workspace order-status-docs
+```
+
+The script will:
+
+- create `/path/to/workspace/order-status-docs/` if it does not already exist
+- initialize a Git repository on the `main` branch
+- configure the `origin` remote using `GIT_REMOTE_BASE` and the repo name, unless the repo parameter is already a full Git URL
+- scaffold a `docs/` tree from the templates in this repository
+- generate an `mkdocs.yml` configured for Material for MkDocs
+- generate a `.gitlab-ci.yml` that validates the docs, publishes GitLab Pages from the default branch, publishes tagged versions with `mike`, and can notify a central document library pipeline
+
+Optional environment variables:
+
+- `DOCS_SITE_NAME` to override the generated MkDocs site name
+- `DOCS_SITE_URL` to set the published site URL in `mkdocs.yml`
+- `DOC_LIBRARY_TRIGGER_URL`, `DOC_LIBRARY_TRIGGER_TOKEN`, and `DOC_LIBRARY_TRIGGER_REF` in GitLab CI/CD variables to notify a central document library pipeline after a successful publish

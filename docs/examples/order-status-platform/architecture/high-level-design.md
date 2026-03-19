@@ -71,6 +71,26 @@ The design separates ingestion, canonical mapping, storage, and read concerns. T
 
 Context includes warehouse systems and carrier adapters as upstream event producers, the Order Status Platform as the canonical processing service, and support tooling plus notification services as downstream consumers.
 
+```mermaid
+flowchart LR
+    Warehouse[Warehouse Systems]
+    Carrier[Carrier Adapters]
+    Support[Support Tooling]
+    Notifications[Notification Services]
+
+    subgraph OSP[Order Status Platform]
+        Ingress[Ingress + Validation]
+        Pipeline[Canonical Processing Pipeline]
+        Query[Query API]
+    end
+
+    Warehouse --> Pipeline
+    Carrier --> Ingress --> Pipeline
+    Pipeline --> Query
+    Pipeline --> Notifications
+    Support --> Query
+```
+
 ### 5.3 Building Blocks
 
 | Building Block | Responsibility | Key Interfaces | Notes |
@@ -85,9 +105,43 @@ Context includes warehouse systems and carrier adapters as upstream event produc
 
 Each inbound event is validated, enriched with correlation metadata, mapped to a canonical state, stored in the timeline table, and compared with the current state snapshot. If the state changed to a publishable milestone, a downstream event is emitted.
 
+```mermaid
+flowchart LR
+    Event[Inbound Event] --> Validate[Validate + Authenticate]
+    Validate --> Enrich[Add Correlation Metadata]
+    Enrich --> Map[Map to Canonical Status]
+    Map --> Timeline[(Append Timeline Event)]
+    Timeline --> Snapshot[Recalculate Current State]
+    Snapshot --> Decision{Publishable Milestone?}
+    Decision -- Yes --> Publish[Emit Downstream Event]
+    Decision -- No --> End[Stop]
+```
+
 ### 5.5 Deployment / Topology Overview
 
 Containers run in a regional cluster with autoscaling enabled for ingress and processing workloads. A managed database stores both event history and current-state projections. Operational telemetry flows to centralized logging and metrics systems.
+
+```mermaid
+flowchart TB
+    Internet[Carrier Traffic] --> Gateway[Gateway / WAF]
+
+    subgraph Cluster[Regional Private Cluster]
+        Ingress[Ingress Service]
+        Processor[Processing Workers]
+        Query[Query API]
+        Telemetry[Telemetry Exporters]
+    end
+
+    Gateway --> Ingress
+    Ingress --> Processor
+    Processor --> Query
+    Processor --> DB[(Managed Database)]
+    Query --> DB
+    Ingress --> Telemetry
+    Processor --> Telemetry
+    Query --> Telemetry
+    Telemetry --> Obs[Centralized Logging + Metrics]
+```
 
 ## 6. Key Design Decisions
 

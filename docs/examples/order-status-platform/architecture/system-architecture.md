@@ -34,6 +34,31 @@ Users and systems interact with the platform through four major paths:
 3. Support tools and internal services query the read API.
 4. Notification services subscribe to milestone events emitted by the platform.
 
+```mermaid
+flowchart LR
+    Warehouse[Warehouse Systems] --> Bus[Warehouse Event Bus]
+    Bus --> Consumer[Event Consumer]
+    Carrier[Carrier Adapters] --> Ingestion[Ingestion API]
+
+    subgraph Platform[Order Status Platform]
+        Consumer --> Mapper[Canonical Mapper]
+        Ingestion --> Mapper
+        Mapper --> Timeline[(Timeline Store)]
+        Timeline --> ReadAPI[Read API]
+        Mapper --> Publisher[Notification Publisher]
+        Metrics[Observability Stack]
+    end
+
+    Support[Support Tools] --> ReadAPI
+    Internal[Internal Services] --> ReadAPI
+    Publisher --> Notifications[Notification Services]
+
+    Consumer -. metrics/logs .-> Metrics
+    Ingestion -. metrics/logs .-> Metrics
+    Mapper -. metrics/logs .-> Metrics
+    ReadAPI -. metrics/logs .-> Metrics
+```
+
 ## 4. Architectural Overview
 
 | Component | Responsibility | Interfaces | Notes |
@@ -49,6 +74,31 @@ Users and systems interact with the platform through four major paths:
 ## 5. Interfaces and Data Flow
 
 Inbound events enter through either the bus consumer or webhook endpoint, pass schema validation and deduplication, then flow through the canonical mapper. Accepted events are appended to the timeline store, current state is recalculated, and milestone events are conditionally published. Read clients query the current state snapshot and join timeline rows when historical detail is requested.
+
+```mermaid
+sequenceDiagram
+    participant Warehouse as Warehouse System
+    participant Consumer as Event Consumer
+    participant Carrier as Carrier Adapter
+    participant Ingestion as Ingestion API
+    participant Mapper as Canonical Mapper
+    participant Store as Timeline Store
+    participant Publisher as Notification Publisher
+    participant ReadAPI as Read API
+    participant Client as Support Tool
+
+    Warehouse->>Consumer: Publish package lifecycle event
+    Carrier->>Ingestion: POST shipment scan update
+    Consumer->>Mapper: Forward validated bus event
+    Ingestion->>Mapper: Forward validated webhook event
+    Mapper->>Store: Append canonical timeline event
+    Mapper->>Store: Recalculate current state snapshot
+    Mapper-->>Publisher: Emit publishable milestone
+    Client->>ReadAPI: GET /orders/{id}/status
+    ReadAPI->>Store: Load snapshot and timeline
+    Store-->>ReadAPI: Current state + history
+    ReadAPI-->>Client: Canonical order timeline
+```
 
 ## 6. Deployment View
 

@@ -58,7 +58,14 @@ Describe the solution at a level suitable for technical and cross-functional rev
 
 ### 5.2 Context Diagram
 
-Insert or link a context diagram showing users, upstream systems, downstream systems, and trust boundaries.
+Insert or link a context diagram showing users, upstream systems, downstream systems, and trust boundaries. Mermaid is recommended when the diagram should live with the design text.
+
+```mermaid
+flowchart LR
+    User[Primary User] --> Capability[<system-or-feature-name>]
+    Upstream[Upstream Dependency] --> Capability
+    Capability --> Downstream[Downstream Dependency]
+```
 
 ### 5.3 Building Blocks
 
@@ -68,11 +75,34 @@ Insert or link a context diagram showing users, upstream systems, downstream sys
 
 ### 5.4 Data Flow Overview
 
-Describe the major data paths, transformations, and storage boundaries.
+Describe the major data paths, transformations, and storage boundaries. Mermaid `flowchart` blocks are useful for concise, review-friendly diagrams.
+
+```mermaid
+flowchart LR
+    Input[Input] --> Validate[Validate]
+    Validate --> Transform[Transform]
+    Transform --> Store[(Store)]
+    Store --> Output[Output]
+```
 
 ### 5.5 Deployment / Topology Overview
 
-Describe environments, hosting model, network zones, and runtime placement.
+Describe environments, hosting model, network zones, and runtime placement. Mermaid can capture high-level topology directly in the document.
+
+```mermaid
+flowchart TB
+    Users[Users / Clients] --> Edge[Edge / Gateway]
+
+    subgraph Platform[Platform Environment]
+        App[Application Layer]
+        Worker[Async Processing]
+    end
+
+    Edge --> App
+    App --> Worker
+    App --> Data[(Primary Data Store)]
+    Worker --> Data
+```
 
 ## 6. Key Design Decisions
 

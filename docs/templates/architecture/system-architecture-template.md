@@ -30,7 +30,20 @@ Summarize the business workflow, mission need, or user problem being solved.
 
 ### 2.2 Context Diagram
 
-Insert or link a system context diagram.
+Insert or link a system context diagram. Mermaid is recommended for diagrams stored directly in this Markdown document.
+
+```mermaid
+flowchart LR
+    User[User / Actor] --> Entry[Entry Point]
+    Upstream[Upstream System] --> Entry
+
+    subgraph System[<system-name>]
+        Entry --> Processing[Core Processing]
+        Processing --> Store[(Primary Data Store)]
+    end
+
+    Processing --> Downstream[Downstream System]
+```
 
 ### 2.3 External Dependencies
 
@@ -70,11 +83,37 @@ Describe the major subsystems and responsibilities.
 
 ### 4.3 Data Flow
 
-Describe key data movements, transformations, and persistence boundaries.
+Describe key data movements, transformations, and persistence boundaries. Mermaid `flowchart` and `sequenceDiagram` blocks work well here.
+
+```mermaid
+sequenceDiagram
+    participant Producer as Upstream System
+    participant Service as <system-name>
+    participant Store as Primary Data Store
+    participant Consumer as Downstream System
+
+    Producer->>Service: Send request or event
+    Service->>Service: Validate and transform
+    Service->>Store: Persist state
+    Service-->>Consumer: Return response or publish event
+```
 
 ### 4.4 Deployment View
 
-Describe runtime topology, environments, infrastructure, and trust boundaries.
+Describe runtime topology, environments, infrastructure, and trust boundaries. Mermaid `flowchart` blocks can capture environment and trust-boundary views inline.
+
+```mermaid
+flowchart TB
+    Internet[External Traffic] --> Edge[Gateway / Edge]
+
+    subgraph Runtime[Runtime Environment]
+        App[Application Services]
+        Jobs[Background Workers]
+    end
+
+    App --> DB[(Primary Database)]
+    Jobs --> DB
+```
 
 ## 5. Interfaces
 

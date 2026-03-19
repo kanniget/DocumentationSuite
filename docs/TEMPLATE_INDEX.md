@@ -45,3 +45,7 @@ Use this index to choose a starting template for common systems and software eng
 | Template | When to Use It | File |
 | --- | --- | --- |
 | Change Log | Track notable changes to the documentation suite or a solution set. | `docs/templates/governance/change-log-template.md` |
+
+## Example Implementation
+
+- See `docs/examples/order-status-platform/README.md` for a complete, cross-functional example showing how the templates can be filled out for a fictional Order Status Platform.

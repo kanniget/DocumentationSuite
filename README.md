@@ -27,6 +27,8 @@ The structure is intentionally lightweight so teams can adopt it quickly and tai
 │   │   ├── project-management/
 │   │   ├── quality/
 │   │   └── requirements/
+│   ├── examples/
+│   │   └── order-status-platform/
 │   └── TEMPLATE_INDEX.md
 └── .github/
     └── pull_request_template.md
@@ -35,10 +37,11 @@ The structure is intentionally lightweight so teams can adopt it quickly and tai
 ## Getting Started
 
 1. Review `docs/TEMPLATE_INDEX.md` to find the right template.
-2. Copy the chosen template into your working documentation area.
-3. Replace placeholder values such as `<system-name>` and `<date>`.
-4. Remove sections that do not apply and add domain-specific detail.
-5. Keep decisions, assumptions, and open questions explicit.
+2. Review `docs/examples/order-status-platform/` for a filled-out sample implementation of the templates.
+3. Copy the chosen template into your working documentation area.
+4. Replace placeholder values such as `<system-name>` and `<date>`.
+5. Remove sections that do not apply and add domain-specific detail.
+6. Keep decisions, assumptions, and open questions explicit.
 
 ## Suggested Usage Model
 
@@ -65,3 +68,4 @@ Consider extending this suite with:
 - automation for generating new documents from templates
 - markdown linting and formatting checks
 - a published documentation site using MkDocs, Docusaurus, or similar tooling
+- more end-to-end example implementations for additional domains

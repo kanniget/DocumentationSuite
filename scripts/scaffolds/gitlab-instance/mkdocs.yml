@@ -1,0 +1,40 @@
+site_name: __SITE_NAME__
+site_description: Documentation for __SITE_NAME__
+__SITE_URL_LINE__
+theme:
+  name: material
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+plugins:
+  - search
+nav:
+  - Home: index.md
+  - Requirements:
+      - Product Requirements Document: requirements/prd.md
+      - Software Requirements Specification: requirements/srs.md
+  - Architecture:
+      - System Architecture: architecture/system-architecture.md
+      - High-Level Design: architecture/high-level-design.md
+      - Low-Level Design: architecture/low-level-design.md
+      - Interface Control: architecture/interface-control.md
+  - Quality:
+      - Test Plan: quality/test-plan.md
+      - Verification and Validation Plan: quality/verification-validation-plan.md
+  - Operations:
+      - Runbook: operations/runbook.md
+      - Postmortem: operations/postmortem.md
+      - Release Readiness: operations/release-readiness.md
+  - Governance:
+      - Architecture Decision Record: governance/adr-001.md
+      - Change Log: governance/change-log.md
+  - Project Management:
+      - Delivery Plan: project-management/delivery-plan.md
+repo_name: __REPO_NAME__
+edit_uri: ""

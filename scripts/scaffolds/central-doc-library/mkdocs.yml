@@ -1,0 +1,23 @@
+site_name: __SITE_NAME__
+site_description: Central catalog for published documentation repositories
+__SITE_URL_LINE__
+theme:
+  name: material
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+plugins:
+  - search
+nav:
+  - Home: index.md
+  - Library:
+      - Catalog: library/index.md
+      - Contributing Sources: library/contributing.md
+repo_name: __REPO_NAME__
+edit_uri: ""

@@ -1,0 +1,75 @@
+stages:
+  - validate
+  - publish
+  - notify
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  MKDOCS_BUILD_STRICT: "true"
+
+cache:
+  paths:
+    - .cache/pip
+
+.default_python:
+  image: python:3.12-slim
+  before_script:
+    - python --version
+    - pip install --upgrade pip
+    - pip install mkdocs-material mkdocs-git-revision-date-localized-plugin mike
+
+validate_docs:
+  extends: .default_python
+  stage: validate
+  script:
+    - if [ "$MKDOCS_BUILD_STRICT" = "true" ]; then mkdocs build --strict; else mkdocs build; fi
+  artifacts:
+    paths:
+      - site/
+    expire_in: 1 week
+
+pages:
+  extends: .default_python
+  stage: publish
+  script:
+    - if [ "$MKDOCS_BUILD_STRICT" = "true" ]; then mkdocs build --strict; else mkdocs build; fi
+    - mv site public
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+publish_version:
+  extends: .default_python
+  stage: publish
+  script:
+    - mike deploy --update-aliases "$CI_COMMIT_TAG" latest
+    - mike set-default latest
+  rules:
+    - if: '$CI_COMMIT_TAG'
+
+notify_document_library:
+  image: curlimages/curl:8.7.1
+  stage: notify
+  needs:
+    - job: pages
+      optional: true
+    - job: publish_version
+      optional: true
+  script:
+    - |
+      if [ -z "$DOC_LIBRARY_TRIGGER_URL" ] || [ -z "$DOC_LIBRARY_TRIGGER_TOKEN" ]; then
+        echo "Document library trigger variables are not configured; skipping notification."
+        exit 0
+      fi
+      curl --fail --request POST \
+        --form token="$DOC_LIBRARY_TRIGGER_TOKEN" \
+        --form ref="${DOC_LIBRARY_TRIGGER_REF:-main}" \
+        --form "variables[DOC_SOURCE_PROJECT]=$CI_PROJECT_PATH" \
+        --form "variables[DOC_SOURCE_REF]=$CI_COMMIT_REF_NAME" \
+        --form "variables[DOC_SOURCE_SHA]=$CI_COMMIT_SHA" \
+        "$DOC_LIBRARY_TRIGGER_URL"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$CI_COMMIT_TAG'

@@ -70,188 +70,63 @@ build_remote_url() {
   fi
 }
 
-copy_template() {
+copy_file() {
   local source=$1
   local target=$2
   mkdir -p "$(dirname "$target")"
   cp "$source" "$target"
 }
 
-write_index() {
-  cat > "$instance_dir/docs/index.md" <<INDEX
-# ${site_name}
-
-Welcome to the documentation set for **${site_name}**.
-
-Use the navigation to browse requirements, architecture, quality, operations,
-governance, and delivery planning artifacts.
-
-## Repository Metadata
-
-- **Repository:** ${repo_name}
-- **Status:** Draft
-- **Owner:** <team>
-- **Last Reviewed:** <yyyy-mm-dd>
-
-## Getting Started
-
-1. Replace placeholder values such as \`<system-name>\` and \`<date>\`.
-2. Remove sections that do not apply to your system.
-3. Add links between related documents to improve traceability.
-4. Update the GitLab CI variables if you want to notify a central document library pipeline after successful builds.
-INDEX
+copy_tree() {
+  local source_dir=$1
+  local target_dir=$2
+  mkdir -p "$target_dir"
+  cp -R "$source_dir/." "$target_dir/"
 }
 
-write_mkdocs_config() {
-  cat > "$instance_dir/mkdocs.yml" <<MKDOCS
-site_name: ${site_name}
-site_description: Documentation for ${site_name}
-${site_url:+site_url: ${site_url}}
-theme:
-  name: material
-markdown_extensions:
-  - admonition
-  - attr_list
-  - def_list
-  - footnotes
-  - md_in_html
-  - tables
-  - toc:
-      permalink: true
-plugins:
-  - search
-nav:
-  - Home: index.md
-  - Requirements:
-      - Product Requirements Document: requirements/prd.md
-      - Software Requirements Specification: requirements/srs.md
-  - Architecture:
-      - System Architecture: architecture/system-architecture.md
-      - High-Level Design: architecture/high-level-design.md
-      - Low-Level Design: architecture/low-level-design.md
-      - Interface Control: architecture/interface-control.md
-  - Quality:
-      - Test Plan: quality/test-plan.md
-      - Verification and Validation Plan: quality/verification-validation-plan.md
-  - Operations:
-      - Runbook: operations/runbook.md
-      - Postmortem: operations/postmortem.md
-      - Release Readiness: operations/release-readiness.md
-  - Governance:
-      - Architecture Decision Record: governance/adr-001.md
-      - Change Log: governance/change-log.md
-  - Project Management:
-      - Delivery Plan: project-management/delivery-plan.md
-repo_name: ${repo_name}
-edit_uri: ""
-MKDOCS
-}
+render_template() {
+  local source=$1
+  local target=$2
+  local site_url_line=""
 
-write_gitlab_ci() {
-  cat > "$instance_dir/.gitlab-ci.yml" <<'GITLABCI'
-stages:
-  - validate
-  - publish
-  - notify
+  if [[ -n $site_url ]]; then
+    site_url_line="site_url: $site_url"
+  fi
 
-variables:
-  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-  MKDOCS_BUILD_STRICT: "true"
-
-cache:
-  paths:
-    - .cache/pip
-
-.default_python:
-  image: python:3.12-slim
-  before_script:
-    - python --version
-    - pip install --upgrade pip
-    - pip install mkdocs-material mkdocs-git-revision-date-localized-plugin mike
-
-validate_docs:
-  extends: .default_python
-  stage: validate
-  script:
-    - if [ "$MKDOCS_BUILD_STRICT" = "true" ]; then mkdocs build --strict; else mkdocs build; fi
-  artifacts:
-    paths:
-      - site/
-    expire_in: 1 week
-
-pages:
-  extends: .default_python
-  stage: publish
-  script:
-    - if [ "$MKDOCS_BUILD_STRICT" = "true" ]; then mkdocs build --strict; else mkdocs build; fi
-    - mv site public
-  artifacts:
-    paths:
-      - public
-  rules:
-    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
-
-publish_version:
-  extends: .default_python
-  stage: publish
-  script:
-    - mike deploy --update-aliases "$CI_COMMIT_TAG" latest
-    - mike set-default latest
-  rules:
-    - if: '$CI_COMMIT_TAG'
-
-notify_document_library:
-  image: curlimages/curl:8.7.1
-  stage: notify
-  needs:
-    - job: pages
-      optional: true
-    - job: publish_version
-      optional: true
-  script:
-    - |
-      if [ -z "$DOC_LIBRARY_TRIGGER_URL" ] || [ -z "$DOC_LIBRARY_TRIGGER_TOKEN" ]; then
-        echo "Document library trigger variables are not configured; skipping notification."
-        exit 0
-      fi
-      curl --fail --request POST \
-        --form token="$DOC_LIBRARY_TRIGGER_TOKEN" \
-        --form ref="${DOC_LIBRARY_TRIGGER_REF:-main}" \
-        --form "variables[DOC_SOURCE_PROJECT]=$CI_PROJECT_PATH" \
-        --form "variables[DOC_SOURCE_REF]=$CI_COMMIT_REF_NAME" \
-        --form "variables[DOC_SOURCE_SHA]=$CI_COMMIT_SHA" \
-        "$DOC_LIBRARY_TRIGGER_URL"
-  rules:
-    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
-    - if: '$CI_COMMIT_TAG'
-GITLABCI
+  mkdir -p "$(dirname "$target")"
+  sed \
+    -e "s|__SITE_NAME__|$site_name|g" \
+    -e "s|__REPO_NAME__|$repo_name|g" \
+    -e "s|__SITE_URL_LINE__|$site_url_line|g" \
+    "$source" > "$target"
 }
 
 main() {
   require_command git
   require_command cp
   require_command mkdir
+  require_command sed
 
   mkdir -p "$instance_dir"
 
-  copy_template "$repo_root/docs/templates/requirements/prd-template.md" "$instance_dir/docs/requirements/prd.md"
-  copy_template "$repo_root/docs/templates/requirements/srs-template.md" "$instance_dir/docs/requirements/srs.md"
-  copy_template "$repo_root/docs/templates/architecture/system-architecture-template.md" "$instance_dir/docs/architecture/system-architecture.md"
-  copy_template "$repo_root/docs/templates/architecture/high-level-design-template.md" "$instance_dir/docs/architecture/high-level-design.md"
-  copy_template "$repo_root/docs/templates/architecture/low-level-design-template.md" "$instance_dir/docs/architecture/low-level-design.md"
-  copy_template "$repo_root/docs/templates/architecture/interface-control-template.md" "$instance_dir/docs/architecture/interface-control.md"
-  copy_template "$repo_root/docs/templates/quality/test-plan-template.md" "$instance_dir/docs/quality/test-plan.md"
-  copy_template "$repo_root/docs/templates/quality/verification-validation-template.md" "$instance_dir/docs/quality/verification-validation-plan.md"
-  copy_template "$repo_root/docs/templates/operations/runbook-template.md" "$instance_dir/docs/operations/runbook.md"
-  copy_template "$repo_root/docs/templates/operations/postmortem-template.md" "$instance_dir/docs/operations/postmortem.md"
-  copy_template "$repo_root/docs/templates/operations/release-readiness-template.md" "$instance_dir/docs/operations/release-readiness.md"
-  copy_template "$repo_root/docs/templates/governance/adr-template.md" "$instance_dir/docs/governance/adr-001.md"
-  copy_template "$repo_root/docs/templates/governance/change-log-template.md" "$instance_dir/docs/governance/change-log.md"
-  copy_template "$repo_root/docs/templates/project-management/delivery-plan-template.md" "$instance_dir/docs/project-management/delivery-plan.md"
+  copy_tree "$repo_root/scripts/scaffolds/gitlab-instance" "$instance_dir"
+  render_template "$repo_root/scripts/scaffolds/gitlab-instance/docs/index.md" "$instance_dir/docs/index.md"
+  render_template "$repo_root/scripts/scaffolds/gitlab-instance/mkdocs.yml" "$instance_dir/mkdocs.yml"
 
-  write_index
-  write_mkdocs_config
-  write_gitlab_ci
+  copy_file "$repo_root/docs/templates/requirements/prd-template.md" "$instance_dir/docs/requirements/prd.md"
+  copy_file "$repo_root/docs/templates/requirements/srs-template.md" "$instance_dir/docs/requirements/srs.md"
+  copy_file "$repo_root/docs/templates/architecture/system-architecture-template.md" "$instance_dir/docs/architecture/system-architecture.md"
+  copy_file "$repo_root/docs/templates/architecture/high-level-design-template.md" "$instance_dir/docs/architecture/high-level-design.md"
+  copy_file "$repo_root/docs/templates/architecture/low-level-design-template.md" "$instance_dir/docs/architecture/low-level-design.md"
+  copy_file "$repo_root/docs/templates/architecture/interface-control-template.md" "$instance_dir/docs/architecture/interface-control.md"
+  copy_file "$repo_root/docs/templates/quality/test-plan-template.md" "$instance_dir/docs/quality/test-plan.md"
+  copy_file "$repo_root/docs/templates/quality/verification-validation-template.md" "$instance_dir/docs/quality/verification-validation-plan.md"
+  copy_file "$repo_root/docs/templates/operations/runbook-template.md" "$instance_dir/docs/operations/runbook.md"
+  copy_file "$repo_root/docs/templates/operations/postmortem-template.md" "$instance_dir/docs/operations/postmortem.md"
+  copy_file "$repo_root/docs/templates/operations/release-readiness-template.md" "$instance_dir/docs/operations/release-readiness.md"
+  copy_file "$repo_root/docs/templates/governance/adr-template.md" "$instance_dir/docs/governance/adr-001.md"
+  copy_file "$repo_root/docs/templates/governance/change-log-template.md" "$instance_dir/docs/governance/change-log.md"
+  copy_file "$repo_root/docs/templates/project-management/delivery-plan-template.md" "$instance_dir/docs/project-management/delivery-plan.md"
 
   if [[ ! -d "$instance_dir/.git" ]]; then
     git -C "$instance_dir" init -b main >/dev/null
@@ -270,13 +145,14 @@ main() {
   fi
 
   cat <<SUMMARY
-Created documentation instance at: $instance_dir
+Created documentation repository at: $instance_dir
 Configured remote origin: $remote_url
 
 Next steps:
-  1. Review and update placeholders in docs/.
-  2. Commit the generated files in the new repository.
-  3. Configure DOC_LIBRARY_TRIGGER_URL and DOC_LIBRARY_TRIGGER_TOKEN in GitLab CI/CD variables to notify the central library pipeline.
+  1. Review the copied templates and adjust the generated mkdocs.yml navigation if needed.
+  2. Replace placeholder values in docs/index.md and the copied templates.
+  3. Commit the generated files in the new repository.
+  4. Configure DOC_LIBRARY_TRIGGER_URL and DOC_LIBRARY_TRIGGER_TOKEN in GitLab CI/CD variables to notify the central library pipeline.
 SUMMARY
 }
 

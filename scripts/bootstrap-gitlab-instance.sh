@@ -140,19 +140,30 @@ main() {
     git -C "$instance_dir" remote add origin "$remote_url"
   fi
 
+  local commit_status="No new commit created"
+
+  git -C "$instance_dir" add -A
+
   if ! git -C "$instance_dir" rev-parse --verify HEAD >/dev/null 2>&1; then
-    git -C "$instance_dir" add .
+    git -C "$instance_dir" commit -m "initial build" >/dev/null
+    commit_status='Committed generated files with message: initial build'
+  elif ! git -C "$instance_dir" diff --cached --quiet; then
+    git -C "$instance_dir" commit -m "initial build" >/dev/null
+    commit_status='Committed generated files with message: initial build'
   fi
+
+  git -C "$instance_dir" push -u origin main >/dev/null
 
   cat <<SUMMARY
 Created documentation repository at: $instance_dir
 Configured remote origin: $remote_url
+$commit_status
+Pushed branch: main
 
 Next steps:
   1. Review the copied templates and adjust the generated mkdocs.yml navigation if needed.
   2. Replace placeholder values in docs/index.md and the copied templates.
-  3. Commit the generated files in the new repository.
-  4. Configure DOC_LIBRARY_TRIGGER_URL and DOC_LIBRARY_TRIGGER_TOKEN in GitLab CI/CD variables to notify the central library pipeline.
+  3. Configure DOC_LIBRARY_TRIGGER_URL and DOC_LIBRARY_TRIGGER_TOKEN in GitLab CI/CD variables to notify the central library pipeline.
 SUMMARY
 }
 

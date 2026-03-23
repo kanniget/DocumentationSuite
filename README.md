@@ -87,6 +87,7 @@ The script will:
 - scaffold a small MkDocs site for the central catalog
 - seed a `data/doc-sources.csv` registry and a renderer script that turns it into a browsable catalog page
 - generate a `.gitlab-ci.yml` that can ingest `DOC_SOURCE_*` trigger variables, optionally commit catalog updates back to the default branch, and publish the site with GitLab Pages
+- create an initial `initial build` commit and push it to `origin main` when bootstrapping a brand-new repository
 
 Optional environment variables:
 

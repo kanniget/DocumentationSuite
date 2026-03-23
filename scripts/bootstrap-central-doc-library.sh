@@ -129,6 +129,7 @@ Next steps:
   1. Review docs/library/contributing.md and configure the CI/CD variables it describes.
   2. Create a pipeline trigger token in this repository and provide the trigger URL/token to source documentation repositories.
   3. Verify the initial build commit on origin/main and continue catalog configuration.
+  4. If runners fail to upload artifacts, verify the runner host/container DNS settings can resolve the GitLab service hostname available on the runner network.
 SUMMARY
 }
 

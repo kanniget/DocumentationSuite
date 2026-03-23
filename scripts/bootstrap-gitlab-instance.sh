@@ -164,6 +164,7 @@ Next steps:
   1. Review the copied templates and adjust the generated mkdocs.yml navigation if needed.
   2. Replace placeholder values in docs/index.md and the copied templates.
   3. Configure DOC_LIBRARY_TRIGGER_URL and DOC_LIBRARY_TRIGGER_TOKEN in GitLab CI/CD variables to notify the central library pipeline.
+  4. If runners fail to upload artifacts, verify the runner host/container DNS settings can resolve the GitLab service hostname available on the runner network.
 SUMMARY
 }
 

@@ -116,7 +116,9 @@ main() {
   fi
 
   if ! git -C "$instance_dir" rev-parse --verify HEAD >/dev/null 2>&1; then
-    git -C "$instance_dir" add .
+    git -C "$instance_dir" add -A
+    git -C "$instance_dir" commit -m "initial build" >/dev/null
+    git -C "$instance_dir" push -u origin main
   fi
 
   cat <<SUMMARY
@@ -126,7 +128,7 @@ Configured remote origin: $remote_url
 Next steps:
   1. Review docs/library/contributing.md and configure the CI/CD variables it describes.
   2. Create a pipeline trigger token in this repository and provide the trigger URL/token to source documentation repositories.
-  3. Commit the generated files in the new repository.
+  3. Verify the initial build commit on origin/main and continue catalog configuration.
 SUMMARY
 }
 

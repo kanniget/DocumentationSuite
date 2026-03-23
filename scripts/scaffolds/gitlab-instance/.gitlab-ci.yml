@@ -23,10 +23,6 @@ validate_docs:
   stage: validate
   script:
     - if [ "$MKDOCS_BUILD_STRICT" = "true" ]; then mkdocs build --strict; else mkdocs build; fi
-  artifacts:
-    paths:
-      - site/
-    expire_in: 1 week
 
 pages:
   extends: .default_python

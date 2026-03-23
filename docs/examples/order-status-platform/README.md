@@ -23,6 +23,7 @@ The platform consolidates status changes from warehouse, carrier, and support sy
 - [System Architecture](architecture/system-architecture.md)
 - [High-Level Design](architecture/high-level-design.md)
 - [Low-Level Design](architecture/low-level-design.md)
+- [Network Design](architecture/network-design.md)
 - [Interface Control Document](architecture/interface-control.md)
 
 ### Quality
